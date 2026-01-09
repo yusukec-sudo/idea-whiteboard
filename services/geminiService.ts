@@ -2,7 +2,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AIResponse, Node, Edge } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// APIキーを取得する関数（localStorageを優先）
+const getApiKey = () => {
+  return localStorage.getItem('GEMINI_API_KEY') || process.env.APIKEY || process.env.API_KEY || "";
+};
 
 const RESPONSE_SCHEMA = {
   type: Type.OBJECT,
@@ -58,6 +61,12 @@ export async function callGeminiAction(
   edges: Edge[],
   selectedNodeId?: string
 ): Promise<AIResponse> {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error("APIキーが設定されていません。右上の設定から入力してください。");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
   const nodeContext = nodes.map(n => `ID: ${n.id}, Parent: ${n.parentId}, Title: ${n.title}`).join('\n');
   const targetNode = nodes.find(n => n.id === selectedNodeId);
 
